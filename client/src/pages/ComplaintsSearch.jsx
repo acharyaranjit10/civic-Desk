@@ -2,24 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { complaintService } from '../services/complaints';
 import { 
-  FiSearch, FiFilter, FiEye, FiTrash2, FiDownload, FiRefreshCw,
-  FiUser, FiMapPin, FiHash
+  FiSearch, FiFilter, FiEye, FiDownload, FiRefreshCw,
+  FiUser, FiMapPin, FiHash, FiTag, FiCalendar
 } from 'react-icons/fi';
-import {useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 
-
-const AdminComplaints = () => {
-  
+const ComplaintsSearch = () => {
   const { user } = useAuth();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [searchType, setSearchType] = useState('ward'); // 'user', 'ward', 'id', 'location'
+  const [searchType, setSearchType] = useState('ward'); // 'user', 'ward', 'id'
   const [wards, setWards] = useState([]);
   const [filters, setFilters] = useState({
     userId: '',
-    wardId: user?.role === 'ward_admin' ? user.ward_id : '',
+    wardId: '',
     complaintId: '',
     status: '',
     tags: '',
@@ -31,28 +29,19 @@ const AdminComplaints = () => {
   });
   const [totalCount, setTotalCount] = useState(0);
 
-  // Keep wardId for ward admins
+  // Fetch wards for dropdown
   useEffect(() => {
-    if (user?.role === 'ward_admin' && user.ward_id) {
-      setFilters(prev => ({ ...prev, wardId: user.ward_id }));
-      setSearchType('ward');
-    }
-  }, [user]);
-
-  
-useEffect(() => {
-  const fetchWards = async () => {
-    try {
-      const res = await fetch('http://localhost:3000/api/ward');
-      const data = await res.json();
-      setWards(data);
-    } catch (err) {
-      console.error('Failed to fetch wards:', err);
-    }
-  };
-
-  fetchWards();
-}, []);
+    const fetchWards = async () => {
+      try {
+        const res = await fetch('http://localhost:3000/api/ward');
+        const data = await res.json();
+        setWards(data);
+      } catch (err) {
+        console.error('Failed to fetch wards:', err);
+      }
+    };
+    fetchWards();
+  }, []);
 
   // Normalize API response
   const normalizeResponse = (response) => {
@@ -79,7 +68,6 @@ useEffect(() => {
           break;
 
         case 'ward':
-        case 'location':
           response = await complaintService.getComplaintsByLocation({
             ward_id: filters.wardId,
             status: filters.status,
@@ -103,7 +91,6 @@ useEffect(() => {
 
         default:
           response = await complaintService.getComplaintsByLocation({
-            ward_id: filters.wardId,
             status: filters.status,
             page: filters.page,
             limit: filters.limit,
@@ -113,7 +100,7 @@ useEffect(() => {
 
       const data = normalizeResponse(response);
       setComplaints(data);
-      setTotalCount(response.totalCount || data.length); // totalCount from backend if available
+      setTotalCount(response.totalCount || data.length);
 
     } catch (error) {
       console.error('Error fetching complaints:', error);
@@ -131,7 +118,7 @@ useEffect(() => {
     setSearchType(type);
     setFilters(prev => ({
       userId: '',
-      wardId: user.role === 'ward_admin' ? user.ward_id : '',
+      wardId: '',
       complaintId: '',
       status: '',
       tags: '',
@@ -141,33 +128,6 @@ useEffect(() => {
       limit: 20,
       order: 'desc',
     }));
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this complaint?')) return;
-    try {
-      const response = await complaintService.deleteComplaint(id);
-      if (response.success) {
-        setComplaints(prev => prev.filter(c => c.id !== id));
-        toast.success('Complaint deleted successfully');
-      }
-    } catch (error) {
-      toast.error('Failed to delete complaint');
-    }
-  };
-
-  const handleStatusUpdate = async (complaintId, newStatus) => {
-    if (!window.confirm(`Change status to "${newStatus}"?`)) return;
-    try {
-      const response = await complaintService.updateStatus(complaintId, newStatus);
-      if (response.success) {
-        setComplaints(prev => prev.map(c => c.id === complaintId ? { ...c, status: newStatus } : c));
-      } else {
-        toast.error(response.message || 'Failed to update status');
-      }
-    } catch (error) {
-      toast.error('Failed to update status');
-    }
   };
 
   const exportCSV = () => {
@@ -190,17 +150,32 @@ useEffect(() => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `complaints-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `complaints-search-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const getStatusBadgeColor = (status) => {
+    const colors = {
+      registered: 'bg-blue-100 text-blue-800',
+      under_review: 'bg-yellow-100 text-yellow-800',
+      assigned: 'bg-orange-100 text-orange-800',
+      in_progress: 'bg-purple-100 text-purple-800',
+      resolved: 'bg-green-100 text-green-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Toaster position="top-right" />
+      
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-nepal-blue">Complaints Management</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-nepal-blue">Search Complaints</h1>
+          <p className="text-gray-600 mt-1">Browse and search through all filed complaints</p>
+        </div>
         <div className="flex space-x-3">
           <button
             onClick={exportCSV}
@@ -220,13 +195,12 @@ useEffect(() => {
 
       {/* Search Type Selector */}
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-        <h2 className="text-lg font-semibold text-nepal-blue mb-4">Search Type</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <h2 className="text-lg font-semibold text-nepal-blue mb-4">Search By</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {[
             { type: 'ward', icon: <FiMapPin />, label: 'By Ward' },
             { type: 'user', icon: <FiUser />, label: 'By User' },
             { type: 'id', icon: <FiHash />, label: 'By ID' },
-            // { type: 'location', icon: <FiSearch />, label: 'Advanced' },
           ].map(({ type, icon, label }) => (
             <button
               key={type}
@@ -236,7 +210,7 @@ useEffect(() => {
               }`}
             >
               {icon}
-              <span>{label}</span>
+              <span className="mt-1 text-sm">{label}</span>
             </button>
           ))}
         </div>
@@ -246,54 +220,31 @@ useEffect(() => {
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
         <h2 className="text-lg font-semibold text-nepal-blue mb-4">Filters</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-          {(searchType === 'ward' || searchType === 'location') && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Ward ID</label>
-                <input
-                  type="number"
-                  value={filters.wardId}
-                  onChange={(e) => handleFilterChange('wardId', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nepal-blue"
-                  placeholder="Enter ward number"
-                  min="1"
-                  max="32"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
-                <input
-                  type="text"
-                  value={filters.tags}
-                  onChange={(e) => handleFilterChange('tags', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nepal-blue"
-                  placeholder="garbage, potholes, etc."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                <input
-                  type="date"
-                  value={filters.startDate}
-                  onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nepal-blue"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                <input
-                  type="date"
-                  value={filters.endDate}
-                  onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nepal-blue"
-                />
-              </div>
-            </>
+          {/* Ward Filter */}
+          {searchType === 'ward' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <FiMapPin className="inline mr-1" /> Ward
+              </label>
+              <select
+                value={filters.wardId}
+                onChange={(e) => handleFilterChange('wardId', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nepal-blue"
+              >
+                <option value="">All Wards</option>
+                {wards.map(ward => (
+                  <option key={ward.id} value={ward.id}>Ward {ward.name}</option>
+                ))}
+              </select>
+            </div>
           )}
 
+          {/* User ID Filter */}
           {searchType === 'user' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">User ID</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <FiUser className="inline mr-1" /> User ID
+              </label>
               <input
                 type="number"
                 value={filters.userId}
@@ -305,9 +256,12 @@ useEffect(() => {
             </div>
           )}
 
+          {/* Complaint ID Filter */}
           {searchType === 'id' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Complaint ID</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <FiHash className="inline mr-1" /> Complaint ID
+              </label>
               <input
                 type="number"
                 value={filters.complaintId}
@@ -319,8 +273,11 @@ useEffect(() => {
             </div>
           )}
 
+          {/* Status Filter - Available for all search types */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <FiFilter className="inline mr-1" /> Status
+            </label>
             <select
               value={filters.status}
               onChange={(e) => handleFilterChange('status', e.target.value)}
@@ -333,6 +290,45 @@ useEffect(() => {
               <option value="in_progress">In Progress</option>
               <option value="resolved">Resolved</option>
             </select>
+          </div>
+
+          {/* Tags Filter - Available for all search types */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <FiTag className="inline mr-1" /> Tags
+            </label>
+            <input
+              type="text"
+              value={filters.tags}
+              onChange={(e) => handleFilterChange('tags', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nepal-blue"
+              placeholder="garbage, potholes, etc."
+            />
+          </div>
+
+          {/* Date Filters - Available for all search types */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <FiCalendar className="inline mr-1" /> Start Date
+            </label>
+            <input
+              type="date"
+              value={filters.startDate}
+              onChange={(e) => handleFilterChange('startDate', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nepal-blue"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <FiCalendar className="inline mr-1" /> End Date
+            </label>
+            <input
+              type="date"
+              value={filters.endDate}
+              onChange={(e) => handleFilterChange('endDate', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nepal-blue"
+            />
           </div>
         </div>
 
@@ -347,7 +343,6 @@ useEffect(() => {
               <option value="10">10 per page</option>
               <option value="20">20 per page</option>
               <option value="50">50 per page</option>
-              <option value="100">100 per page</option>
             </select>
 
             <select
@@ -371,7 +366,7 @@ useEffect(() => {
       </div>
 
       {/* Results */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-auto">
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nepal-blue mx-auto"></div>
@@ -379,60 +374,74 @@ useEffect(() => {
           </div>
         ) : !complaints.length ? (
           <div className="text-center py-12">
-            <FiFilter className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <FiSearch className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No complaints found</h3>
             <p className="text-gray-600">
-              {filters.status ? `No ${filters.status} complaints match your filters.` : 'Try adjusting your filters.'}
+              {Object.values(filters).some(val => val) 
+                ? 'No complaints match your current filters.' 
+                : 'Try searching with different filters.'}
             </p>
           </div>
         ) : (
-          <table className="w-full table-auto">
-            <thead className="bg-gray-50">
-              <tr>
-                {['ID','Description','Status','Ward','Tags','Date','Actions'].map(h => (
-                  <th key={h} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {complaints.map(c => (
-                <tr key={c.id}>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">#{c.id}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{c.description}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <select
-                      value={c.status}
-                      onChange={(e) => handleStatusUpdate(c.id, e.target.value)}
-                      className="text-sm border border-gray-300 rounded px-2 py-1"
-                    >
-                      <option value="registered">Registered</option>
-                      <option value="under_review">Under Review</option>
-                      <option value="assigned">Assigned</option>
-                      <option value="in_progress">In Progress</option>
-                      <option value="resolved">Resolved</option>
-                    </select>
-                  </td>
-                  {/* <td className="px-6 py-4 text-sm text-gray-500">Ward {c.ward_id}</td> */}
-                  <td className="px-6 py-4 text-sm text-gray-500">
-  Ward {wards.find(w => Number(w.id) === Number(c.ward_id))?.name || c.ward_id}
-</td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {c.tags?.slice(0,3).map(tag => (
-                        <span key={tag} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">{tag}</span>
-                      ))}
-                      {c.tags?.length > 3 && <span className="text-xs text-gray-500">+{c.tags.length - 3} more</span>}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{new Date(c.submitted_at).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 text-sm font-medium flex space-x-2">
-                    <button className="text-nepal-blue hover:text-blue-800" onClick={() => navigate(`/complaints/${c.id}`)} ><FiEye className="w-5 h-5"/></button>
-                    <button onClick={() => handleDelete(c.id)} className="text-red-600 hover:text-red-800"><FiTrash2 className="w-5 h-5"/></button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto">
+              <thead className="bg-gray-50">
+                <tr>
+                  {['ID', 'Description', 'Status', 'Ward', 'Tags', 'Date Submitted', 'Actions'].map(h => (
+                    <th key={h} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {complaints.map(complaint => (
+                  <tr key={complaint.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      #{complaint.id}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                      <div className="truncate" title={complaint.description}>
+                        {complaint.description}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(complaint.status)}`}>
+                        {complaint.status.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      Ward {wards.find(w => Number(w.id) === Number(complaint.ward_id))?.name || complaint.ward_id}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {complaint.tags?.slice(0, 3).map(tag => (
+                          <span key={tag} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                            {tag}
+                          </span>
+                        ))}
+                        {complaint.tags?.length > 3 && (
+                          <span className="text-xs text-gray-500">+{complaint.tags.length - 3} more</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(complaint.submitted_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => navigate(`/complaints/${complaint.id}`)}
+                        className="text-nepal-blue hover:text-blue-800 flex items-center"
+                      >
+                        <FiEye className="w-4 h-4 mr-1" />
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -442,20 +451,24 @@ useEffect(() => {
           <button
             onClick={() => handleFilterChange('page', Math.max(1, filters.page - 1))}
             disabled={filters.page === 1}
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 disabled:opacity-50"
-          >Previous</button>
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 disabled:opacity-50 flex items-center"
+          >
+            Previous
+          </button>
           <span className="text-sm text-gray-600">
             Page {filters.page} of {Math.ceil(totalCount / filters.limit) || 1}
           </span>
           <button
             onClick={() => handleFilterChange('page', filters.page + 1)}
             disabled={filters.page * filters.limit >= totalCount}
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 disabled:opacity-50"
-          >Next</button>
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 disabled:opacity-50 flex items-center"
+          >
+            Next
+          </button>
         </div>
       )}
     </div>
   );
 };
 
-export default AdminComplaints;
+export default ComplaintsSearch;

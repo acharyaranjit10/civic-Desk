@@ -45,20 +45,43 @@ const ComplaintDetails = () => {
   }, [id]);
 
 const handleDelete = async (id) => {
-  if (!window.confirm('Are you sure you want to delete this complaint?')) return;
-
-  try {
-    const response = await complaintService.deleteComplaint(id);
-    if (response.success) {
-      toast.success('Complaint deleted successfully');
-      setComplaint(null); // or navigate away if needed
-    } else {
-      toast.error(response.message || 'Failed to delete complaint');
-    }
-  } catch (err) {
-    console.error('Error deleting complaint:', err);
-    toast.error('Error deleting complaint');
-  }
+  // show a toast with confirm/cancel buttons
+  toast(
+    (t) => (
+      <div className="flex flex-col">
+        <p className="mb-2">Are you sure you want to delete this complaint?</p>
+        <div className="flex justify-end space-x-2">
+          <button
+            className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+            onClick={async () => {
+              toast.dismiss(t.id); // dismiss confirmation toast
+              try {
+                const response = await complaintService.deleteComplaint(id);
+                if (response.success) {
+                  setComplaint(null); // or navigate away
+                  toast.success('Complaint deleted successfully');
+                } else {
+                  toast.error(response.message || 'Failed to delete complaint');
+                }
+              } catch (err) {
+                console.error(err);
+                toast.error('Error deleting complaint');
+              }
+            }}
+          >
+            Yes
+          </button>
+        </div>
+      </div>
+    ),
+    { duration: Infinity } // keep open until user clicks
+  );
 };
 
 

@@ -153,12 +153,12 @@ const complaintCategories = {
 // Middleware to detect nearby similar complaints
 export const checkSimilarComplaints = async (req, res, next) => {
   try {
-    const { existingComplainId, latitude, longitude } = req.body;
+    const { existingComplainId, latitude, longitude,fileNewAnyway } = req.body;
     const user = req.userInfo;
     const tempKey = `draft:complaint:${user.id}`;
 
     // Skip check if user confirmed duplicate manually
-    if (existingComplainId) return next();
+    if (existingComplainId || fileNewAnyway) return next();
 
     // ✅ Safe JSON parse
     let tags = [];

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { complaintService } from '../services/complaints';
 import { FiUsers, FiAlertTriangle, FiCheckCircle, FiClock, FiBarChart2 } from 'react-icons/fi';
+import { toast, Toaster } from 'react-hot-toast';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -102,15 +103,16 @@ const handleStatusUpdate = async (complaintId, newStatus) => {
   try {
     const response = await complaintService.updateStatus(complaintId, newStatus);
     if (response.success) {
-      alert('Status updated successfully');
+      toast.success('Status updated successfully'); // <-- changed
       fetchAdminData(); // Refresh data
     } else {
-      alert(response.message); // Show backend message
+      toast.error(response.message); // <-- changed
     }
   } catch (error) {
-    alert(error.response?.data?.message || 'Failed to update status');
+    toast.error(error.response?.data?.message || 'Failed to update status'); // <-- changed
   }
 };
+
 
   if (loading) {
     return (
@@ -120,9 +122,10 @@ const handleStatusUpdate = async (complaintId, newStatus) => {
     );
   }
   const adminWard = wards.find(w => Number(w.id) === Number(user?.ward_id));
-
+  
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <Toaster position="top-right" />
       <h1 className="text-2xl font-bold text-nepal-blue mb-8">Admin Dashboard</h1>
       
       {/* Admin Info */}

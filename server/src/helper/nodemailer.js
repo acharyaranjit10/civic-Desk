@@ -47,7 +47,38 @@ const registerEmailVerificationMail = async (email, code) => {
     }
 }
 
-export { registerEmailVerificationMail };
+// export { registerEmailVerificationMail };
+
+// inside nodemailer.js (below registerEmailVerificationMail)
+const passwordResetMail = async (email, code) => {
+  const receiverEmail = email;
+  const subject = 'Password Reset Code';
+  const htmlBody = `
+    <div style="font-family: Arial, sans-serif; color: #333;">
+      <h2 style="color: #E67E22;">Password Reset Request</h2>
+      <p>Hello,</p>
+      <p>You requested to reset your password. Use the following code:</p>
+      <p style="font-size: 24px; font-weight: bold; color: #D35400; letter-spacing: 2px;">${code}</p>
+      <p>This code will expire in <strong>3 minutes</strong>.</p>
+      <hr style="border:none; border-top:1px solid #ccc; margin: 20px 0;">
+      <p style="font-size: 12px; color: #999;">If you did not request a password reset, you can safely ignore this email.</p>
+      <p style="font-size: 12px; color: #999;">Thank you,<br>Smart Palika Team</p>
+    </div>
+  `;
+
+  const mailOptions = PutMailOptions(receiverEmail, subject, htmlBody);
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    return info;
+  } catch (error) {
+    console.error('Error in sending password reset email: ', error);
+    throw error;
+  }
+};
+
+export { registerEmailVerificationMail, passwordResetMail };
+
 
 // Example info Output (Gmail + SMTP)
 // 

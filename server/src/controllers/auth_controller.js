@@ -1,7 +1,9 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { LRUCache } from "lru-cache";
-import { registerEmailVerificationMail } from "../helper/nodemailer.js";
+// import { registerEmailVerificationMail } from "../helper/nodemailer.js";
+import { registerEmailVerificationMail, passwordResetMail } from "../helper/nodemailer.js";
+
 import { query } from "../config/db.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -330,7 +332,9 @@ const requestPasswordReset = async (req, res) => {
     pendingPasswordResets.set(email, { code });
 
     try {
-        const info = await registerEmailVerificationMail(email, code);
+        // const info = await registerEmailVerificationMail(email, code);
+        const info = await passwordResetMail(email, code);
+
         if (info.accepted && info.accepted.length > 0) {
             return res.status(200).json({
                 success: true,

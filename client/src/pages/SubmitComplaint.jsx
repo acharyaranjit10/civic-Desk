@@ -110,6 +110,7 @@ const SubmitComplaint = () => {
       setIsLoading(false);
     }
   };
+// In client/src/pages/SubmitComplaint.jsx
 const handleFileNewComplaint = async () => {
   if (!formData.description || !formData.latitude || !formData.longitude || !formData.photo || formData.tags.length === 0) {
     toast.error('Please fill all required fields!');
@@ -118,7 +119,13 @@ const handleFileNewComplaint = async () => {
 
   setIsLoading(true);
   try {
-    const response = await complaintService.fileComplaint(formData);
+    // Add fileNewAnyway flag to bypass similar complaints check
+    const complaintData = {
+      ...formData,
+      fileNewAnyway: true
+    };
+    
+    const response = await complaintService.fileComplaint(complaintData);
     if (response.success) {
       toast.success('Complaint filed successfully!');
       navigate('/complaints');
@@ -184,7 +191,7 @@ const handleFileNewComplaint = async () => {
 
           <div className="flex gap-4">
  <button
-  onClick={handleSubmit} // use the new function
+  onClick={handleFileNewComplaint} // use the new function
   className="bg-nepal-red text-white px-6 py-2 rounded-lg hover:bg-red-700"
 >
   File New Complaint Anyway
@@ -241,7 +248,7 @@ const handleFileNewComplaint = async () => {
                   onChange={handleInputChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nepal-blue focus:border-transparent"
-                  placeholder="27.7172"
+                  placeholder="27.719445"
                 />
               </div>
               <div>
@@ -254,7 +261,7 @@ const handleFileNewComplaint = async () => {
                   onChange={handleInputChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nepal-blue focus:border-transparent"
-                  placeholder="85.3240"
+                  placeholder="85.316908"
                 />
               </div>
             </div>

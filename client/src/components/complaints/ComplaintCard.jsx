@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiMapPin, FiMessageSquare, FiStar, FiEye, FiCalendar } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { formatDate, getStatusBadge } from '../../utils/helpers';
+import { formatDate,formatDateOnly, getStatusBadge } from '../../utils/helpers';
 import RatingModal from './RatingModal';
 import { useComplaint } from '../../context/ComplaintContext';
 
@@ -85,7 +85,7 @@ const ward = wards.find(w => Number(w.id) === Number(complaint.ward_id));
           </div>
           <div className="flex items-center text-gray-500 text-sm mt-2 sm:mt-0">
             <FiCalendar className="w-4 h-4 mr-1.5" />
-            <span>{formatDate(complaint.submitted_at)}</span>
+            <span>{formatDateOnly(complaint.submitted_at)}</span>
           </div>
         </div>
 {/* {console.log(complaint)} */}

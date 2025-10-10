@@ -12,7 +12,8 @@ import {
   FiSettings,
   FiFilter,
   FiChevronDown,
-  FiLogIn
+  FiLogIn,
+  FiSearch
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -36,7 +37,8 @@ const Header = () => {
     : user
     ? [
         { name: 'Dashboard', href: '/dashboard', icon: FiHome },
-        { name: 'My Complaints', href: '/complaints', icon: FiAlertTriangle }
+        { name: 'My Complaints', href: '/complaints', icon: FiAlertTriangle },
+        { name: 'Search Complaints', href: '/search-complaints', icon: FiSearch }
       ]
     : [];
 

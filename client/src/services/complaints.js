@@ -1,6 +1,7 @@
 import { api } from './api';
 
 export const complaintService = {
+// In client/src/services/complaints.js - fileComplaint function
 async fileComplaint(complaintData) {
   const formData = new FormData();
 
@@ -8,7 +9,7 @@ async fileComplaint(complaintData) {
     if (key === 'tags' && Array.isArray(complaintData[key])) {
       formData.append(key, JSON.stringify(complaintData[key]));
     } else if (key === 'photo' && complaintData[key]) {
-      formData.append('image', complaintData[key]); // corrected field name
+      formData.append('image', complaintData[key]);
     } else if (complaintData[key] !== null && complaintData[key] !== undefined) {
       formData.append(key, complaintData[key]);
     }
@@ -16,12 +17,11 @@ async fileComplaint(complaintData) {
 
   const response = await api.post('/complaint/file', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
-    withCredentials: true, // JWT cookie
+    withCredentials: true,
   });
 
   return response.data;
 },
-
   async getUserComplaints(params = {}) {
     const queryParams = new URLSearchParams();
     

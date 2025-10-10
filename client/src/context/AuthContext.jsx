@@ -125,7 +125,7 @@ const removeProfileImage = async () => {
       setIsAuthenticated(true);
       localStorage.setItem('authToken', response.token);
       localStorage.setItem('user', JSON.stringify(userData)); // Store complete user data
-      toast.success('Login successful!');
+      toast.success('Login successful!', { duration: 2000 });
      return { success: true, user: userData };
 
     }

@@ -22,6 +22,7 @@ import Profile from './pages/Profile'
 import NotFound from './pages/NotFound'
 import ComplaintDetails from './pages/ComplaintDetails'
 import AdminComplaints from './pages/AdminComplaints';
+import ComplaintsSearch from './pages/ComplaintsSearch';
 
 // Protected Route Component
 import ProtectedRoute from './components/common/ProtectedRoute'
@@ -67,6 +68,11 @@ function App() {
               } /> 
               {/* Protected User Routes
                */}
+               <Route path="/search-complaints" element={
+  <ProtectedRoute>
+    <MainLayout><ComplaintsSearch /></MainLayout>
+  </ProtectedRoute>
+} />
               
               <Route path="/admin" element={
                 <ProtectedRoute adminOnly>

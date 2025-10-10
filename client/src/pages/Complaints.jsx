@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { complaintService } from '../services/complaints';
 import { FiSearch, FiFilter, FiPlus, FiEye, FiTrash2 } from 'react-icons/fi';
+import { Toaster, toast } from 'react-hot-toast';
+
 
 const Complaints = () => {
   const [complaints, setComplaints] = useState([]);
@@ -39,19 +41,43 @@ const Complaints = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this complaint?')) {
-      try {
-        const response = await complaintService.deleteComplaint(id);
-        if (response.success) {
-          setComplaints(prev => prev.filter(c => c.id !== id));
-          alert('Complaint deleted successfully');
-        }
-      } catch (error) {
-        alert('Failed to delete complaint');
-      }
-    }
-  };
+ const handleDelete = (id) => {
+  toast((t) => (
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+      <span>Are you sure you want to delete this complaint?</span>
+      <div className="flex gap-2 mt-2 sm:mt-0">
+        <button
+          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+          onClick={async () => {
+            try {
+              const response = await complaintService.deleteComplaint(id);
+              if (response.success) {
+                setComplaints(prev => prev.filter(c => c.id !== id));
+                toast.success('Complaint deleted successfully');
+              } else {
+                toast.error('Failed to delete complaint');
+              }
+            } catch (err) {
+              toast.error('Error deleting complaint');
+            }
+            toast.dismiss(t.id);
+          }}
+        >
+          Yes
+        </button>
+        <button
+          className="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
+          onClick={() => toast.dismiss(t.id)}
+        >
+          No
+        </button>
+      </div>
+    </div>
+  ), {
+    duration: 8000,
+  });
+};
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -73,6 +99,7 @@ const Complaints = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <Toaster position="top-right" />
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-nepal-blue">My Complaints</h1>
         <Link
@@ -103,7 +130,7 @@ const Complaints = () => {
             </select>
           </div>
           
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
             <div className="relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -115,7 +142,7 @@ const Complaints = () => {
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nepal-blue"
               />
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 

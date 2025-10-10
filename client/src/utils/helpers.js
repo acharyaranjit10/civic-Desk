@@ -12,6 +12,15 @@ export const formatDate = (dateString) => {
   });
 };
 
+export const formatDateOnly = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-NP', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
 
 export const getStatusBadge = (status) => {
   const statusConfig = {
