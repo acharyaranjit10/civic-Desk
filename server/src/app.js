@@ -13,7 +13,7 @@ const app = express();
 // CORS configuration
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-  ? 'https://your-production-domain.com' 
+  ? 'https://civic-desk.vercel.app' 
   : ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true, // Allow cookies to be sent
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
