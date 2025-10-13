@@ -5,8 +5,8 @@ import { ComplaintProvider } from './context/ComplaintContext'
 import ComplaintRatings from './pages/ComplaintRating'
 
 // Layout Components
-import MainLayout from './components/layout/MainLayout'
-import AuthLayout from './components/layout/AuthLayout'
+import MainLayout from './components/Layout/MainLayout'
+import AuthLayout from './components/Layout/AuthLayout'
 
 // Page Components
 import Home from './pages/Home'
