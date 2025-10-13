@@ -39,7 +39,7 @@
 
 // // Civic-Desk
 import { config } from "dotenv";
-import express from "express";
+// import express from "express";
 
 config();
 
@@ -60,7 +60,7 @@ app.use(cors({
 }));
 
 // ===== EXPRESS JSON =====
-app.use(express.json());
+// app.use(express.json());
 
 // ===== PORT =====
 const port = process.env.PORT || 5000;
