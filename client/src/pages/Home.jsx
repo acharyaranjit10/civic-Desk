@@ -43,17 +43,17 @@ const Home = () => {
 
   const testimonials = [
     {
-      name: "Rajesh Sharma",
+      name: "Ranjit Acharya",
       role: "Citizen, Kathmandu",
       content: "This portal helped resolve our garbage collection issue in just 3 days. The status updates kept us informed throughout the process.",
     },
     {
-      name: "Sunita Gurung",
+      name: "Prasidhha Bhattarai",
       role: "Local Business Owner",
       content: "Reporting the damaged road near my shop was so easy. The municipality fixed it within a week after I submitted the complaint.",
     },
     {
-      name: "Hari Thapa",
+      name: "Janak Duwadi",
       role: "Community Leader",
       content: "The transparency in complaint tracking has increased citizen trust in local governance. A revolutionary platform for Nepal!",
     }
