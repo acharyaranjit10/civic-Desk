@@ -10,7 +10,7 @@ import AuthLayout from './components/Layout/AuthLayout'
 
 // Page Components
 import Home from './pages/Home'
-import Login from './pages/login'
+import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
